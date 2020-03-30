@@ -101,7 +101,7 @@ public class DOTGraphExporter extends AbstractGraphExporter implements GraphExpo
             exporter.exportGraph(g, out);
             cgraph.setContent(out.toString());
             cgraph.setContentName("graph.dot");
-            cgraph.setContentType("application/xml");
+            cgraph.setContentType("application/octet-stream");
         } catch (ExportException e) {
             throw new RuntimeException(e);
         }
