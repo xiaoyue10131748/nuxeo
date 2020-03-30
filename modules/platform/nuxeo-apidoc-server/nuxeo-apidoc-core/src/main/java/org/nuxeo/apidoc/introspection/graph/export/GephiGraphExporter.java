@@ -80,7 +80,7 @@ public class GephiGraphExporter extends AbstractGraphExporter implements GraphEx
 
     protected int getTimeoutSeconds(EditableGraph graph) {
         // Layout for 1 minute by default
-        String timeout = graph.getProperty(TIMEOUT_PROP, "60");
+        String timeout = graph.getProperty(TIMEOUT_PROP, "10");
         int res = Integer.valueOf(timeout);
         return res;
     }
