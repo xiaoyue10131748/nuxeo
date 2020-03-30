@@ -45,7 +45,7 @@ import org.nuxeo.apidoc.snapshot.DistributionSnapshot;
 
 /**
  * Basic implementation relying on introspection of distribution.
- * 
+ *
  * @since 11.1
  */
 public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
@@ -167,7 +167,7 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
                     // also add link to target extension point, "guessing" the extension point id, not counting for
                     // hits
                     String targetId = NODE_TYPE.EXTENSION_POINT.prefix(contribution.getExtensionPoint());
-                    graph.addEdge(createEdge(createNode(targetId), contNode, EDGE_TYPE.REFERENCES.name()));
+                    graph.addEdge(createEdge(contNode, createNode(targetId), EDGE_TYPE.REFERENCES.name()));
                     hit(nodeHits, targetId);
                     hit(nodeHits, NODE_TYPE.COMPONENT.prefix(contribution.getTargetComponentName().getRawName()));
                 }
