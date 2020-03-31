@@ -53,11 +53,11 @@ public class GraphImpl extends BaseNuxeoArtifact implements EditableGraph {
 
     protected final Map<String, String> properties = new HashMap<>();
 
-    protected final List<Node> nodes = new ArrayList<>();
+    protected final List<Node<?>> nodes = new ArrayList<>();
 
     protected final List<Edge> edges = new ArrayList<>();
 
-    protected final Map<String, Node> nodeMap = new HashMap<>();
+    protected final Map<String, Node<?>> nodeMap = new HashMap<>();
 
     @JsonCreator
     public GraphImpl(@JsonProperty("name") String name) {
@@ -109,18 +109,22 @@ public class GraphImpl extends BaseNuxeoArtifact implements EditableGraph {
         this.type = type;
     }
 
+    @Override
     public String getTitle() {
         return title;
     }
 
+    @Override
     public void setTitle(String title) {
         this.title = title;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
 
+    @Override
     public void setDescription(String description) {
         this.description = description;
     }
@@ -144,22 +148,25 @@ public class GraphImpl extends BaseNuxeoArtifact implements EditableGraph {
         this.properties.putAll(properties);
     }
 
-    public void addNode(Node node) {
+    @Override
+    public void addNode(Node<?> node) {
         this.nodes.add(node);
         this.nodeMap.put(node.getId(), node);
     }
 
+    @Override
     public void addEdge(Edge edge) {
         this.edges.add(edge);
     }
 
-    public Node getNode(String id) {
+    @Override
+    public Node<?> getNode(String id) {
         return nodeMap.get(id);
     }
 
     @Override
     @JsonIgnore
-    public List<Node> getNodes() {
+    public List<Node<?>> getNodes() {
         return Collections.unmodifiableList(nodes);
     }
 
@@ -174,13 +181,14 @@ public class GraphImpl extends BaseNuxeoArtifact implements EditableGraph {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public EditableGraph copy(NodeFilter nodeFilter) {
         GraphImpl g = new GraphImpl(getName());
         g.setTitle(getTitle());
         g.setDescription(getDescription());
         g.setType(getType());
         g.setProperties(getProperties());
-        for (Node node : getNodes()) {
+        for (Node<?> node : getNodes()) {
             if (nodeFilter == null || nodeFilter.accept(node)) {
                 g.addNode(node.copy());
             }
@@ -189,8 +197,8 @@ public class GraphImpl extends BaseNuxeoArtifact implements EditableGraph {
             if (nodeFilter == null) {
                 g.addEdge(edge.copy());
             } else {
-                Node source = getNode(edge.getSource());
-                Node target = getNode(edge.getTarget());
+                Node<?> source = getNode(edge.getSource());
+                Node<?> target = getNode(edge.getTarget());
                 if (nodeFilter.accept(source) && nodeFilter.accept(target)) {
                     g.addEdge(edge.copy());
                 }

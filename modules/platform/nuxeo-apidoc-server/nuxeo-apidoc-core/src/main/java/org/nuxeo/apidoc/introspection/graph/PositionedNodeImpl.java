@@ -18,6 +18,7 @@
  */
 package org.nuxeo.apidoc.introspection.graph;
 
+import org.nuxeo.apidoc.api.NuxeoArtifact;
 import org.nuxeo.apidoc.api.graph.Node;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
@@ -29,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @since 11.1
  */
 @JsonIgnoreType
-public class PositionedNodeImpl extends NodeImpl {
+public class PositionedNodeImpl<T extends NuxeoArtifact> extends NodeImpl<T> {
 
     protected float x = 0;
 
@@ -38,9 +39,13 @@ public class PositionedNodeImpl extends NodeImpl {
     protected float z = 0;
 
     public PositionedNodeImpl(@JsonProperty("id") String id, @JsonProperty("label") String label,
-            @JsonProperty("weight") int weight, @JsonProperty("path") String path, @JsonProperty("type") String type,
-            @JsonProperty("category") String category) {
-        super(id, label, weight, path, type, category);
+            @JsonProperty("type") String type, @JsonProperty("weight") int weight) {
+        this(id, label, type, weight, null);
+    }
+
+    public PositionedNodeImpl(@JsonProperty("id") String id, @JsonProperty("label") String label,
+            @JsonProperty("type") String type, @JsonProperty("weight") int weight, T object) {
+        super(id, label, type, weight, object);
     }
 
     public float getX() {
@@ -68,8 +73,9 @@ public class PositionedNodeImpl extends NodeImpl {
     }
 
     @Override
-    public Node copy() {
-        PositionedNodeImpl copy = new PositionedNodeImpl(id, label, weight, path, type, category);
+    public Node<T> copy() {
+        PositionedNodeImpl<T> copy = new PositionedNodeImpl<T>(id, label, type, weight, object);
+        copy.setAttributes(getAttributes());
         copy.setX(x);
         copy.setY(y);
         copy.setZ(z);

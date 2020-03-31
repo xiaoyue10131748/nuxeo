@@ -18,25 +18,35 @@
  */
 package org.nuxeo.apidoc.api.graph;
 
+import java.util.Map;
+
+import org.nuxeo.apidoc.api.NuxeoArtifact;
+
 /**
  * @since 11.1
  */
-public interface Node {
+public interface Node<T extends NuxeoArtifact> {
 
     String getId();
 
     String getLabel();
 
-    String getPath();
-
     String getType();
 
-    String getCategory();
+    T getObject();
+
+    String getAttribute(String key, String defaultValue);
+
+    Map<String, String> getAttributes();
+
+    void setAttribute(String key, String value);
+
+    void setAttributes(Map<String, String> attributes);
 
     int getWeight();
 
     void setWeight(int weigth);
 
-    Node copy();
+    Node<T> copy();
 
 }

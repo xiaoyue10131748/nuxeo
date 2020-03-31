@@ -31,6 +31,7 @@ import org.nuxeo.apidoc.api.BundleInfo;
 import org.nuxeo.apidoc.api.ComponentInfo;
 import org.nuxeo.apidoc.api.ExtensionInfo;
 import org.nuxeo.apidoc.api.ExtensionPointInfo;
+import org.nuxeo.apidoc.api.NuxeoArtifact;
 import org.nuxeo.apidoc.api.ServiceInfo;
 import org.nuxeo.apidoc.api.graph.EDGE_TYPE;
 import org.nuxeo.apidoc.api.graph.Edge;
@@ -38,6 +39,7 @@ import org.nuxeo.apidoc.api.graph.EditableGraph;
 import org.nuxeo.apidoc.api.graph.GRAPH_TYPE;
 import org.nuxeo.apidoc.api.graph.Graph;
 import org.nuxeo.apidoc.api.graph.GraphGenerator;
+import org.nuxeo.apidoc.api.graph.NODE_ATTRIBUTE;
 import org.nuxeo.apidoc.api.graph.NODE_CATEGORY;
 import org.nuxeo.apidoc.api.graph.NODE_TYPE;
 import org.nuxeo.apidoc.api.graph.Node;
@@ -115,32 +117,32 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
         for (String bid : distribution.getBundleIds()) {
             BundleInfo bundle = distribution.getBundle(bid);
             NODE_CATEGORY category = NODE_CATEGORY.guessCategory(bundle);
-            Node bundleNode = createBundleNode(bundle, category);
+            Node<?> bundleNode = createBundleNode(bundle, category);
             bundleNode.setWeight(1);
             graph.addNode(bundleNode);
             for (String requirement : bundle.getRequirements()) {
-                graph.addEdge(createEdge(bundleNode, createNode(NODE_TYPE.BUNDLE.prefix(requirement)),
-                        EDGE_TYPE.REQUIRES.name()));
+                Node<?> refNode = createReferenceNode(NODE_TYPE.BUNDLE.prefix(requirement), NODE_TYPE.BUNDLE.name());
+                graph.addEdge(createEdge(bundleNode, refNode, EDGE_TYPE.REQUIRES.name()));
             }
             if (bundle.getRequirements().isEmpty()) {
                 isolatedBundles.add(NODE_TYPE.BUNDLE.prefix(bundle.getId()));
             }
             for (ComponentInfo component : bundle.getComponents()) {
-                Node compNode = createComponentNode(component, category);
+                Node<?> compNode = createComponentNode(component, category);
                 graph.addNode(compNode);
                 graph.addEdge(createEdge(bundleNode, compNode, EDGE_TYPE.CONTAINS.name()));
                 for (ServiceInfo service : component.getServices()) {
                     if (service.isOverriden()) {
                         continue;
                     }
-                    Node serviceNode = createServiceNode(service, category);
+                    Node<?> serviceNode = createServiceNode(service, category);
                     graph.addNode(serviceNode);
                     graph.addEdge(createEdge(compNode, serviceNode, EDGE_TYPE.CONTAINS.name()));
                     hit(nodeHits, compNode.getId());
                 }
 
                 for (ExtensionPointInfo xp : component.getExtensionPoints()) {
-                    Node xpNode = createXPNode(xp, category);
+                    Node<?> xpNode = createXPNode(xp, category);
                     graph.addNode(xpNode);
                     graph.addEdge(createEdge(compNode, xpNode, EDGE_TYPE.CONTAINS.name()));
                     hit(nodeHits, compNode.getId());
@@ -158,7 +160,7 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
                         comps.put(cid, Integer.valueOf(0));
                     }
 
-                    Node contNode = createContributionNode(contribution, category);
+                    Node<?> contNode = createContributionNode(contribution, category);
                     graph.addNode(contNode);
                     // add link to corresponding component
                     graph.addEdge(createEdge(compNode, contNode, EDGE_TYPE.CONTAINS.name()));
@@ -167,15 +169,17 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
                     // also add link to target extension point, "guessing" the extension point id, not counting for
                     // hits
                     String targetId = NODE_TYPE.EXTENSION_POINT.prefix(contribution.getExtensionPoint());
-                    graph.addEdge(createEdge(contNode, createNode(targetId), EDGE_TYPE.REFERENCES.name()));
+                    Node<?> refNode = createReferenceNode(targetId, NODE_TYPE.EXTENSION_POINT.name());
+                    graph.addEdge(createEdge(contNode, refNode, EDGE_TYPE.REFERENCES.name()));
                     hit(nodeHits, targetId);
                     hit(nodeHits, NODE_TYPE.COMPONENT.prefix(contribution.getTargetComponentName().getRawName()));
                 }
 
                 // compute requirements
                 for (String requirement : component.getRequirements()) {
-                    graph.addEdge(createEdge(compNode, createNode(NODE_TYPE.COMPONENT.prefix(requirement)),
-                            EDGE_TYPE.SOFT_REQUIRES.name()));
+                    Node<?> refNode = createReferenceNode(NODE_TYPE.COMPONENT.prefix(requirement),
+                            NODE_TYPE.COMPONENT.name());
+                    graph.addEdge(createEdge(compNode, refNode, EDGE_TYPE.SOFT_REQUIRES.name()));
                 }
 
             }
@@ -183,20 +187,20 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
 
         // Adds potentially missing bundle root
         String rrId = getBundleRootId();
-        Node rrNode = graph.getNode(rrId);
+        Node<?> rrNode = graph.getNode(rrId);
         if (rrNode == null) {
             rrNode = createBundleRoot();
             graph.addNode(rrNode);
         }
         // Adds potentially missing link to bundle root for isolated (children nodes)
-        List<Node> orphans = new ArrayList<>();
+        List<Node<?>> orphans = new ArrayList<>();
         // handle missing references in all edges too
         for (Edge edge : graph.getEdges()) {
-            Node source = graph.getNode(edge.getSource());
+            Node<?> source = graph.getNode(edge.getSource());
             if (source == null) {
                 source = addMissingNode(graph, edge.getSource());
             }
-            Node target = graph.getNode(edge.getTarget());
+            Node<?> target = graph.getNode(edge.getTarget());
             if (target == null) {
                 target = addMissingNode(graph, edge.getTarget());
                 if (NODE_TYPE.BUNDLE.name().equals(target.getType())
@@ -206,11 +210,11 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
             }
         }
         // handle isolated bundles
-        for (Node orphan : orphans) {
-            requireBundleRootNode(graph, orphan);
+        for (Node<?> orphan : orphans) {
+            requireBundleRootNode(graph, rrNode, orphan);
         }
         for (String child : isolatedBundles) {
-            requireBundleRootNode(graph, graph.getNode(child));
+            requireBundleRootNode(graph, rrNode, graph.getNode(child));
         }
 
         refine(graph, nodeHits);
@@ -260,14 +264,14 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
         return services;
     }
 
-    protected void requireBundleRootNode(EditableGraph graph, Node bundleNode) {
+    protected void requireBundleRootNode(EditableGraph graph, Node<?> rootNode, Node<?> bundleNode) {
         if (bundleNode == null) {
             return;
         }
         // make it require the root node, unless we're handling the root itself
         String rootId = getBundleRootId();
         if (!rootId.equals(bundleNode.getId())) {
-            graph.addEdge(createEdge(bundleNode, createNode(rootId), EDGE_TYPE.REQUIRES.name()));
+            graph.addEdge(createEdge(bundleNode, rootNode, EDGE_TYPE.REQUIRES.name()));
         }
     }
 
@@ -283,13 +287,13 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
         }
     }
 
-    protected Node addMissingNode(EditableGraph graph, String id) {
+    protected Node<?> addMissingNode(EditableGraph graph, String id) {
         // try to guess category and type according to prefix
         NODE_CATEGORY cat = NODE_CATEGORY.PLATFORM;
         NODE_TYPE type = NODE_TYPE.guess(id);
         String unprefixedId = type.unprefix(id);
         cat = NODE_CATEGORY.guess(unprefixedId);
-        Node node = createNode(id, unprefixedId, getDefaultNodeWeight(), "", type.name(), cat.name());
+        Node<?> node = createNode(id, unprefixedId, type.name(), getDefaultNodeWeight(), cat.name(), null);
         graph.addNode(node);
         return node;
     }
@@ -306,54 +310,57 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
         return 1;
     }
 
-    protected Node createNode(String id, String label, int weight, String path, String type, String category) {
-        return new NodeImpl(id, label, weight, path, type, category);
+    protected Node<?> createNode(String id, String label, String type, int weight, String category,
+            NuxeoArtifact object) {
+        Node<?> node = new NodeImpl<NuxeoArtifact>(id, label, type, weight, object);
+        node.setAttribute(NODE_ATTRIBUTE.CATEGORY.key(), category);
+        if (object != null) {
+            node.setAttribute(NODE_ATTRIBUTE.PATH.key(), object.getHierarchyPath());
+        }
+        return node;
     }
 
-    protected Node createNode(String id) {
-        return createNode(id, id, getDefaultNodeWeight(), null, null, null);
+    protected Node<?> createReferenceNode(String id, String type) {
+        // No category, no extra info
+        return createNode(id, id, type, getDefaultNodeWeight(), null, null);
     }
 
-    protected Node createBundleRoot() {
-        return createNode(getBundleRootId(), BundleInfo.RUNTIME_ROOT_PSEUDO_BUNDLE, getDefaultNodeWeight(), "",
-                NODE_TYPE.BUNDLE.name(), NODE_CATEGORY.RUNTIME.name());
+    protected Node<?> createBundleRoot() {
+        return createNode(getBundleRootId(), BundleInfo.RUNTIME_ROOT_PSEUDO_BUNDLE, NODE_TYPE.BUNDLE.name(),
+                getDefaultNodeWeight(), NODE_CATEGORY.RUNTIME.name(), null);
     }
 
-    protected Node createBundleNode(BundleInfo bundle, NODE_CATEGORY cat) {
+    protected Node<?> createBundleNode(BundleInfo bundle, NODE_CATEGORY cat) {
         String bid = bundle.getId();
         String pbid = NODE_TYPE.BUNDLE.prefix(bid);
-        return createNode(pbid, bid, getDefaultNodeWeight(), "", NODE_TYPE.BUNDLE.name(), cat.name());
+        return createNode(pbid, bid, NODE_TYPE.BUNDLE.name(), getDefaultNodeWeight(), cat.name(), null);
     }
 
-    protected Node createComponentNode(ComponentInfo component, NODE_CATEGORY cat) {
+    protected Node<?> createComponentNode(ComponentInfo component, NODE_CATEGORY cat) {
         String compid = component.getId();
         String pcompid = NODE_TYPE.COMPONENT.prefix(compid);
-        return createNode(pcompid, compid, getDefaultNodeWeight(), component.getHierarchyPath(),
-                NODE_TYPE.COMPONENT.name(), cat.name());
+        return createNode(pcompid, compid, NODE_TYPE.COMPONENT.name(), getDefaultNodeWeight(), cat.name(), component);
     }
 
-    protected Node createServiceNode(ServiceInfo service, NODE_CATEGORY cat) {
+    protected Node<?> createServiceNode(ServiceInfo service, NODE_CATEGORY cat) {
         String sid = service.getId();
         String psid = NODE_TYPE.SERVICE.prefix(sid);
-        return createNode(psid, sid, getDefaultNodeWeight(), service.getHierarchyPath(), NODE_TYPE.SERVICE.name(),
-                cat.name());
+        return createNode(psid, sid, NODE_TYPE.SERVICE.name(), getDefaultNodeWeight(), cat.name(), service);
     }
 
-    protected Node createXPNode(ExtensionPointInfo xp, NODE_CATEGORY cat) {
+    protected Node<?> createXPNode(ExtensionPointInfo xp, NODE_CATEGORY cat) {
         String xpid = xp.getId();
         String pxpid = NODE_TYPE.EXTENSION_POINT.prefix(xpid);
-        return createNode(pxpid, xpid, getDefaultNodeWeight(), xp.getHierarchyPath(), NODE_TYPE.EXTENSION_POINT.name(),
-                cat.name());
+        return createNode(pxpid, xpid, NODE_TYPE.EXTENSION_POINT.name(), getDefaultNodeWeight(), cat.name(), xp);
     }
 
-    protected Node createContributionNode(ExtensionInfo contribution, NODE_CATEGORY cat) {
+    protected Node<?> createContributionNode(ExtensionInfo contribution, NODE_CATEGORY cat) {
         String cid = contribution.getId();
         String pcid = NODE_TYPE.CONTRIBUTION.prefix(cid);
-        return createNode(pcid, cid, getDefaultNodeWeight(), contribution.getHierarchyPath(),
-                NODE_TYPE.CONTRIBUTION.name(), cat.name());
+        return createNode(pcid, cid, NODE_TYPE.CONTRIBUTION.name(), getDefaultNodeWeight(), cat.name(), contribution);
     }
 
-    protected Edge createEdge(Node source, Node target, String value) {
+    protected Edge createEdge(Node<?> source, Node<?> target, String value) {
         return new EdgeImpl(source.getId(), target.getId(), value, getDefaultEdgeWeight());
     }
 
@@ -366,7 +373,7 @@ public abstract class AbstractGraphGeneratorImpl implements GraphGenerator {
     }
 
     protected void setWeight(EditableGraph graph, String nodeId, int hit) {
-        Node node = graph.getNode(nodeId);
+        Node<?> node = graph.getNode(nodeId);
         if (node != null) {
             node.setWeight(node.getWeight() + hit);
         }

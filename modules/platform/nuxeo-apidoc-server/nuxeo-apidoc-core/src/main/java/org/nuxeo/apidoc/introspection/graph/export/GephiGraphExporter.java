@@ -74,7 +74,6 @@ public class GephiGraphExporter extends AbstractGraphExporter implements GraphEx
         cgraph.setContent(backupWriter.toString());
         cgraph.setContentName("graph.gexf");
         cgraph.setContentType("application/xml");
-
         return cgraph;
     }
 
@@ -146,7 +145,7 @@ public class GephiGraphExporter extends AbstractGraphExporter implements GraphEx
         // z positioning will be done later according to node type and other requirements (REFERENCES + REQUIRES between
         // components).
         // forget above explanation if relying on deployment order instead
-        for (Node node : graph.getNodes()) {
+        for (Node<?> node : graph.getNodes()) {
             Integer weight = 1;
             NODE_TYPE ntype = NODE_TYPE.getType(node.getType());
             if (weightRef != null && weightRef.equals(ntype)) {
@@ -184,7 +183,7 @@ public class GephiGraphExporter extends AbstractGraphExporter implements GraphEx
         return graph;
     }
 
-    protected org.gephi.graph.api.Node createGephiNode(GraphFactory factory, Node node, Integer newWeight) {
+    protected org.gephi.graph.api.Node createGephiNode(GraphFactory factory, Node<?> node, Integer newWeight) {
         org.gephi.graph.api.Node gnode = factory.newNode(node.getId());
         gnode.setLabel(node.getLabel());
         if (newWeight == null) {
@@ -206,9 +205,9 @@ public class GephiGraphExporter extends AbstractGraphExporter implements GraphEx
 
     protected void copyPositions(org.gephi.graph.api.Graph ggraph, EditableGraph graph) {
         for (org.gephi.graph.api.Node gnode : ggraph.getNodes()) {
-            Node node = graph.getNode(String.valueOf(gnode.getId()));
+            Node<?> node = graph.getNode(String.valueOf(gnode.getId()));
             if (node instanceof PositionedNodeImpl) {
-                PositionedNodeImpl pnode = (PositionedNodeImpl) node;
+                PositionedNodeImpl<?> pnode = (PositionedNodeImpl<?>) node;
                 pnode.setX(gnode.x());
                 pnode.setY(gnode.y());
                 pnode.setZ(gnode.z());
@@ -216,17 +215,17 @@ public class GephiGraphExporter extends AbstractGraphExporter implements GraphEx
         }
     }
 
-    protected void copyXY(Node source, Node target) {
+    protected void copyXY(Node<?> source, Node<?> target) {
         if (source instanceof PositionedNodeImpl && target instanceof PositionedNodeImpl) {
-            ((PositionedNodeImpl) target).setX(((PositionedNodeImpl) source).getX());
-            ((PositionedNodeImpl) target).setY(((PositionedNodeImpl) source).getY());
+            ((PositionedNodeImpl<?>) target).setX(((PositionedNodeImpl<?>) source).getX());
+            ((PositionedNodeImpl<?>) target).setY(((PositionedNodeImpl<?>) source).getY());
         }
     }
 
     protected void positionZByType(EditableGraph graph) {
-        for (Node node : graph.getNodes()) {
+        for (Node<?> node : graph.getNodes()) {
             if (node instanceof PositionedNodeImpl) {
-                ((PositionedNodeImpl) node).setZ(NODE_TYPE.getType(node.getType()).getZIndex());
+                ((PositionedNodeImpl<?>) node).setZ(NODE_TYPE.getType(node.getType()).getZIndex());
             }
         }
     }

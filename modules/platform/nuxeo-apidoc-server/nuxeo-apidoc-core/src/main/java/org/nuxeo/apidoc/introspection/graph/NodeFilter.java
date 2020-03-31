@@ -22,11 +22,11 @@ import org.nuxeo.apidoc.api.graph.Node;
 
 /**
  * Interface to allow filtering nodes from a graph.
- * 
+ *
  * @since 11.1
  */
 public interface NodeFilter {
 
-    boolean accept(Node node);
+    boolean accept(Node<?> node);
 
 }

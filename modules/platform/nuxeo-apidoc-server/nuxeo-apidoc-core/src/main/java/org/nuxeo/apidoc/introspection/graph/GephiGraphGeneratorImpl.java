@@ -21,9 +21,11 @@ package org.nuxeo.apidoc.introspection.graph;
 import java.util.Arrays;
 import java.util.List;
 
+import org.nuxeo.apidoc.api.NuxeoArtifact;
 import org.nuxeo.apidoc.api.graph.EditableGraph;
 import org.nuxeo.apidoc.api.graph.GRAPH_TYPE;
 import org.nuxeo.apidoc.api.graph.Graph;
+import org.nuxeo.apidoc.api.graph.NODE_ATTRIBUTE;
 import org.nuxeo.apidoc.api.graph.NODE_TYPE;
 import org.nuxeo.apidoc.introspection.graph.export.GephiGraphExporter;
 import org.nuxeo.apidoc.introspection.graph.export.PlotlyGraphExporter;
@@ -41,9 +43,14 @@ public class GephiGraphGeneratorImpl extends AbstractGraphGeneratorImpl {
     }
 
     @Override
-    protected PositionedNodeImpl createNode(String id, String label, int weight, String path, String type,
-            String category) {
-        return new PositionedNodeImpl(id, label, weight, path, type, category);
+    protected PositionedNodeImpl<?> createNode(String id, String label, String type, int weight, String category,
+            NuxeoArtifact object) {
+        PositionedNodeImpl<?> node = new PositionedNodeImpl<NuxeoArtifact>(id, label, type, weight, object);
+        node.setAttribute(NODE_ATTRIBUTE.CATEGORY.key(), category);
+        if (object != null) {
+            node.setAttribute(NODE_ATTRIBUTE.PATH.key(), object.getHierarchyPath());
+        }
+        return node;
     }
 
     @Override

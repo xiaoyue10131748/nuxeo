@@ -252,7 +252,6 @@ public class ServerInfo {
                             binfo.setManifest(mf);
                             binfo.setRequirements(getBundleRequires(mf));
                         }
-
                     }
                     Enumeration<? extends ZipEntry> entries = zFile.entries();
                     while (entries.hasMoreElements()) {

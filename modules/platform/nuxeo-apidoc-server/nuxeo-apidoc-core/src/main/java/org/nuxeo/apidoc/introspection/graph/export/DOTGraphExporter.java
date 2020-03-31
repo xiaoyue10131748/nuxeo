@@ -52,7 +52,7 @@ public class DOTGraphExporter extends AbstractGraphExporter implements GraphExpo
 
         int itemIndex = 1;
         Map<String, IdNode> idMap = new HashMap<>();
-        for (Node node : graph.getNodes()) {
+        for (Node<?> node : graph.getNodes()) {
             IdNode idNode = new IdNode(itemIndex, node);
             g.addVertex(idNode);
             idMap.put(node.getId(), idNode);
@@ -60,8 +60,8 @@ public class DOTGraphExporter extends AbstractGraphExporter implements GraphExpo
         }
 
         for (Edge edge : graph.getEdges()) {
-            Node source = graph.getNode(edge.getSource());
-            Node target = graph.getNode(edge.getTarget());
+            Node<?> source = graph.getNode(edge.getSource());
+            Node<?> target = graph.getNode(edge.getTarget());
             g.addEdge(idMap.get(source.getId()), idMap.get(target.getId()), edge);
         }
 
@@ -87,11 +87,10 @@ public class DOTGraphExporter extends AbstractGraphExporter implements GraphExpo
             ComponentAttributeProvider<IdNode> vertexAttributeProvider = new ComponentAttributeProvider<>() {
                 public Map<String, String> getComponentAttributes(IdNode idNode) {
                     Map<String, String> map = new LinkedHashMap<String, String>();
-                    Node node = idNode.getNode();
+                    Node<?> node = idNode.getNode();
                     map.put("weight", String.valueOf(node.getWeight()));
-                    map.put("path", String.valueOf(node.getPath()));
-                    map.put("category", String.valueOf(node.getCategory()));
                     map.put("type", String.valueOf(node.getType()));
+                    map.putAll(node.getAttributes());
                     return map;
                 }
             };
@@ -113,9 +112,9 @@ public class DOTGraphExporter extends AbstractGraphExporter implements GraphExpo
 
         int id;
 
-        Node node;
+        Node<?> node;
 
-        public IdNode(int id, Node node) {
+        public IdNode(int id, Node<?> node) {
             super();
             this.id = id;
             this.node = node;
@@ -125,7 +124,7 @@ public class DOTGraphExporter extends AbstractGraphExporter implements GraphExpo
             return id;
         }
 
-        public Node getNode() {
+        public Node<?> getNode() {
             return node;
         }
 

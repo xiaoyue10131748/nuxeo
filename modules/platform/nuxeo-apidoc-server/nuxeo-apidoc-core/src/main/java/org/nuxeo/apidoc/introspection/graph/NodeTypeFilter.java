@@ -27,7 +27,7 @@ import org.nuxeo.apidoc.api.graph.Node;
 
 /**
  * Node filter based on node type(s).
- * 
+ *
  * @since 11.1
  */
 public class NodeTypeFilter implements NodeFilter {
@@ -49,7 +49,7 @@ public class NodeTypeFilter implements NodeFilter {
     }
 
     @Override
-    public boolean accept(Node node) {
+    public boolean accept(Node<?> node) {
         if (node == null) {
             return false;
         }

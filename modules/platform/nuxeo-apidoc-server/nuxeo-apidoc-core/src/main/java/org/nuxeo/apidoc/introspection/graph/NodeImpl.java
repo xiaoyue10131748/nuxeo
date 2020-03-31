@@ -18,9 +18,15 @@
  */
 package org.nuxeo.apidoc.introspection.graph;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.nuxeo.apidoc.api.NuxeoArtifact;
 import org.nuxeo.apidoc.api.graph.Node;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -28,31 +34,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @since 11.1
  */
 @JsonIgnoreType
-public class NodeImpl implements Node {
+public class NodeImpl<T extends NuxeoArtifact> implements Node<T> {
 
     protected final String id;
 
     protected final String label;
 
-    protected int weight = 0;
-
-    protected final String path;
-
     protected final String type;
 
-    protected final String category;
+    protected final T object;
+
+    protected int weight = 0;
+
+    protected Map<String, String> attributes = new HashMap<>();
 
     @JsonCreator
     public NodeImpl(@JsonProperty("id") String id, @JsonProperty("label") String label,
-            @JsonProperty("weight") int weight, @JsonProperty("path") String path, @JsonProperty("type") String type,
-            @JsonProperty("category") String category) {
+            @JsonProperty("type") String type, @JsonProperty("weight") int weight) {
+        this(id, label, type, weight, null);
+    }
+
+    @JsonCreator
+    public NodeImpl(@JsonProperty("id") String id, @JsonProperty("label") String label,
+            @JsonProperty("type") String type, @JsonProperty("weight") int weight, T object) {
         super();
         this.id = id;
         this.label = label;
-        this.weight = weight;
-        this.path = path;
         this.type = type;
-        this.category = category;
+        this.object = object;
+        this.weight = weight;
     }
 
     @Override
@@ -66,30 +76,54 @@ public class NodeImpl implements Node {
     }
 
     @Override
+    public String getType() {
+        return type;
+    }
+
+    @Override
     public int getWeight() {
         return weight;
     }
 
+    @Override
     public void setWeight(int weight) {
         this.weight = weight;
     }
 
     @Override
-    public String getPath() {
-        return path;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getCategory() {
-        return category;
+    @JsonIgnore
+    public T getObject() {
+        return object;
     }
 
     @Override
-    public Node copy() {
-        Node copy = new NodeImpl(id, label, weight, path, type, category);
+    public Map<String, String> getAttributes() {
+        return Collections.unmodifiableMap(attributes);
+    }
+
+    @Override
+    public String getAttribute(String key, String defaultValue) {
+        if (attributes.containsKey(key)) {
+            return attributes.get(key);
+        }
+        return defaultValue;
+    }
+
+    @Override
+    public void setAttributes(Map<String, String> attributes) {
+        this.attributes.clear();
+        this.attributes.putAll(attributes);
+    }
+
+    @Override
+    public void setAttribute(String key, String value) {
+        this.attributes.put(key, value);
+    }
+
+    @Override
+    public Node<T> copy() {
+        NodeImpl<T> copy = new NodeImpl<T>(id, label, type, weight, object);
+        copy.setAttributes(getAttributes());
         return copy;
     }
 

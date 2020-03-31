@@ -20,7 +20,9 @@ package org.nuxeo.apidoc.introspection.graph.export;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
+import org.nuxeo.apidoc.api.NuxeoArtifact;
 import org.nuxeo.apidoc.api.graph.Edge;
 import org.nuxeo.apidoc.api.graph.EditableGraph;
 import org.nuxeo.apidoc.api.graph.Node;
@@ -51,6 +53,7 @@ public class PlotlyGraphExporter extends JsonGraphExporter implements GraphExpor
     public ContentGraphImpl export() {
         ContentGraphImpl cgraph = initContentGraph(graph);
 
+        @SuppressWarnings({ "unchecked", "rawtypes" })
         final ObjectMapper mapper = new ObjectMapper().registerModule(
                 new SimpleModule().addAbstractTypeMapping(Node.class, NodeImpl.class)
                                   .addAbstractTypeMapping(Edge.class, EdgeImpl.class)
@@ -78,7 +81,7 @@ public class PlotlyGraphExporter extends JsonGraphExporter implements GraphExpor
         return cgraph;
     }
 
-    public class NodeSerializer extends StdSerializer<Node> {
+    public class NodeSerializer<T extends NuxeoArtifact> extends StdSerializer<Node<T>> {
 
         private static final long serialVersionUID = 1L;
 
@@ -86,12 +89,12 @@ public class PlotlyGraphExporter extends JsonGraphExporter implements GraphExpor
             this(null);
         }
 
-        public NodeSerializer(Class<Node> t) {
+        public NodeSerializer(Class<Node<T>> t) {
             super(t);
         }
 
         @Override
-        public void serialize(Node node, JsonGenerator jgen, SerializerProvider provider)
+        public void serialize(Node<T> node, JsonGenerator jgen, SerializerProvider provider)
                 throws IOException, JsonProcessingException {
             // "id" : "NXService-org.nuxeo.ecm.core.api.blobholder.BlobHolderAdapterService",
             // "label" : "org.nuxeo.ecm.core.api.blobholder.BlobHolderAdapterService",
@@ -107,12 +110,16 @@ public class PlotlyGraphExporter extends JsonGraphExporter implements GraphExpor
             jgen.writeStartObject();
             jgen.writeStringField("id", node.getId());
             jgen.writeStringField("label", node.getLabel());
-            jgen.writeNumberField("weight", node.getWeight());
-            jgen.writeStringField("path", node.getPath());
             jgen.writeStringField("type", node.getType());
-            jgen.writeStringField("category", node.getCategory());
+            jgen.writeNumberField("weight", node.getWeight());
+            Map<String, String> attributes = node.getAttributes();
+            if (attributes != null) {
+                for (Map.Entry<String, String> attribute : attributes.entrySet()) {
+                    jgen.writeStringField(attribute.getKey(), attribute.getValue());
+                }
+            }
             if (node instanceof PositionedNodeImpl) {
-                PositionedNodeImpl pnode = (PositionedNodeImpl) node;
+                PositionedNodeImpl<T> pnode = (PositionedNodeImpl<T>) node;
                 jgen.writeNumberField("x", pnode.getX());
                 jgen.writeNumberField("y", pnode.getY());
                 jgen.writeNumberField("z", pnode.getZ());
