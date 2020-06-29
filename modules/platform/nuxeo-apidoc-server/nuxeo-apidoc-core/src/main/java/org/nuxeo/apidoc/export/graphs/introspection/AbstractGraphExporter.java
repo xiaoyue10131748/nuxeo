@@ -192,6 +192,8 @@ public abstract class AbstractGraphExporter extends AbstractExporter {
             requireBundleRootNode(graph, rrNode, graph.getNode(child));
         }
 
+        // TODO: handle packages
+
         refine(graph, nodeHits);
 
         return graph;
