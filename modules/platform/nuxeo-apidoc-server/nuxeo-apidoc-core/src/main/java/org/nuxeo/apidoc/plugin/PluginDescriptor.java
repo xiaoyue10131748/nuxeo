@@ -18,9 +18,9 @@
  */
 package org.nuxeo.apidoc.plugin;
 
+import org.nuxeo.apidoc.api.Descriptor;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
-import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Xmap descriptor for {@link Plugin} registration.
@@ -56,6 +56,7 @@ public class PluginDescriptor implements Descriptor {
         return id;
     }
 
+    @Override
     public String getKlass() {
         return klass;
     }

@@ -62,7 +62,7 @@ import org.nuxeo.apidoc.plugin.Plugin;
 import org.nuxeo.apidoc.security.SecurityHelper;
 import org.nuxeo.apidoc.snapshot.DistributionSnapshot;
 import org.nuxeo.apidoc.snapshot.DistributionSnapshotDesc;
-import org.nuxeo.apidoc.snapshot.SnapshotFilter;
+import org.nuxeo.apidoc.snapshot.PersistSnapshotFilter;
 import org.nuxeo.apidoc.snapshot.SnapshotManager;
 import org.nuxeo.apidoc.snapshot.SnapshotResolverHelper;
 import org.nuxeo.apidoc.worker.ExtractXmlAttributesWorker;
@@ -292,7 +292,7 @@ public class Distribution extends ModuleRoot {
         String bundleList = formData.getString("bundles");
         String javaPkgList = formData.getString("javaPackages");
         String nxPkgList = formData.getString("nxPackages");
-        SnapshotFilter filter = new SnapshotFilter(distribLabel);
+        PersistSnapshotFilter filter = new PersistSnapshotFilter(distribLabel);
 
         if (bundleList != null) {
             Arrays.stream(bundleList.split("\n"))
@@ -327,7 +327,7 @@ public class Distribution extends ModuleRoot {
         return properties;
     }
 
-    protected Object performSave(SnapshotFilter filter) throws NamingException, NotSupportedException, SystemException,
+    protected Object performSave(PersistSnapshotFilter filter) throws NamingException, NotSupportedException, SystemException,
             SecurityException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
         if (!canSave()) {
             return show404();

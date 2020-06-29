@@ -28,6 +28,7 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.nuxeo.apidoc.api.NuxeoArtifact;
+import org.nuxeo.apidoc.export.api.Exporter;
 import org.nuxeo.apidoc.plugin.Plugin;
 import org.nuxeo.apidoc.security.SecurityHelper;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -130,7 +131,7 @@ public interface SnapshotManager {
      *             {@link SecurityHelper#canSnapshotLiveDistribution(org.nuxeo.ecm.core.api.NuxeoPrincipal)}
      */
     DistributionSnapshot persistRuntimeSnapshot(CoreSession session, String name, Map<String, Serializable> properties,
-            SnapshotFilter filter);
+            PersistSnapshotFilter filter);
 
     void validateImportedSnapshot(CoreSession session, String name, String version, String pathSegment, String title);
 
@@ -156,5 +157,19 @@ public interface SnapshotManager {
      * @since 11.2
      */
     boolean isSiteMode();
+
+    /**
+     * Returns exporters list.
+     *
+     * @since 11.2
+     */
+    List<Exporter> getExporters();
+
+    /**
+     * Returns exporter with given name.
+     *
+     * @since 11.2
+     */
+    Exporter getExporter(String id);
 
 }
