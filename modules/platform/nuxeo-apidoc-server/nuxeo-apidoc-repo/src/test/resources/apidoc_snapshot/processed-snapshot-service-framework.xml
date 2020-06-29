@@ -61,6 +61,7 @@
 
   <extension point="exporters" target="org.nuxeo.apidoc.snapshot.SnapshotManagerComponent">
     <exporter id="jsonGraph" class="org.nuxeo.apidoc.export.graphs.plugins.JsonGraphExporter"></exporter>
+    <!-- TODO: add json graph with layouting for Plotly rendering -->
     <exporter id="dotGraph" class="org.nuxeo.apidoc.export.graphs.plugins.DOTGraphExporter"></exporter>
   </extension>
 
