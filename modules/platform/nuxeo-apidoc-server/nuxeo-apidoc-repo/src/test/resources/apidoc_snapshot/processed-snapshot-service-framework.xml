@@ -90,7 +90,7 @@
       @since 11.2
     </documentation>
     <property name="org.nuxeo.apidoc.secure.xml.keywords">
-      password, Password, secret, apiKey
+      password, Password, secret, apiKey, TMPDIR, TMP, TEMP, TEMPDIR
     </property>
     <property name="org.nuxeo.apidoc.secure.xml.keywords.whitelisted">
       passwordField, passwordHashAlgorithm
