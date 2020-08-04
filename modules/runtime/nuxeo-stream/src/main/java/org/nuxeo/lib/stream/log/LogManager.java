@@ -181,7 +181,7 @@ public interface LogManager extends AutoCloseable {
      * safe.
      *
      * @since 10.2
-     * @deprecated since 11.1 use {@link #createTailer(Name, Collection<LogPartition>)} (Name)} instead
+     * @deprecated since 11.1 use {@link #createTailer(Name, Collection) (Name)} instead
      */
     @Deprecated(since = "11.1")
     default <M extends Externalizable> LogTailer<M> createTailer(String group, Collection<LogPartition> partitions) {
@@ -203,7 +203,7 @@ public interface LogManager extends AutoCloseable {
      * legacy decoder. A tailer is NOT thread safe.
      *
      * @since 10.2
-     * @deprecated since 11.1 use {@link #createTailer(Name, Collection<LogPartition>)} (Name)} instead
+     * @deprecated since 11.1 use {@link #createTailer(Name, Collection) (Name)} instead
      */
     @Deprecated(since = "11.1")
     default <M extends Externalizable> LogTailer<M> createTailer(String group, LogPartition partition) {

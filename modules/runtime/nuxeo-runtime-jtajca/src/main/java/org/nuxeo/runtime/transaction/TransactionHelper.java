@@ -314,6 +314,7 @@ public class TransactionHelper {
      *             transaction interleaving, instead use {@link #runInNewTransaction} or {@link #runWithoutTransaction}
      *             explicitly
      */
+    @Deprecated
     public static void resumeTransaction(Transaction tx) {
         TransactionManager tm = NuxeoContainer.getTransactionManager();
         if (tm == null) {
@@ -335,7 +336,7 @@ public class TransactionHelper {
     /**
      * Starts a new User Transaction with the specified timeout.
      *
-     * @param timeout the timeout in seconds, <= 0 for the default
+     * @param timeout the timeout in seconds, %lt;= 0 for the default
      * @return {@code true} if the transaction was successfully started, {@code false} otherwise
      * @since 5.6
      */

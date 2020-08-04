@@ -79,7 +79,7 @@ import org.junit.runners.model.Statement;
  *     {@literal @}Test
  *     {@literal @}RandomBug.Repeat(issue = NXP99999, onFailure=5, onSuccess=50)
  *     public void testWhichFailsSometimes() throws Exception {
- *         assertTrue(java.lang.Math.random() > 0.2);
+ *         assertTrue(java.lang.Math.random() &gt; 0.2);
  *     }
  * }</code>
  * </pre>
