@@ -445,7 +445,7 @@ pipeline {
           Compile
           ----------------------------------------"""
           echo "MAVEN_OPTS=$MAVEN_OPTS"
-          sh "mvn ${MAVEN_ARGS} -V -T4C -DskipTests install"
+          sh "mvn ${MAVEN_ARGS} -V -T4C -Pjavadoc -DskipTests install"
         }
       }
       post {
