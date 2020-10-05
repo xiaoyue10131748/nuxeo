@@ -65,4 +65,14 @@ public interface ExtensionPoint {
      */
     String getSuperComponent();
 
+    /**
+     * @since TODO
+     */
+    Object[] loadContributions(Extension extension);
+
+    /**
+     * @since TODO
+     */
+    Registry getRegistry();
+
 }

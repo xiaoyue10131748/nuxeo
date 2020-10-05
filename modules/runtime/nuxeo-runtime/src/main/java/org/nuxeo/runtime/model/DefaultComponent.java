@@ -102,12 +102,14 @@ public class DefaultComponent implements Component, Adaptable {
     }
 
     public void registerContribution(Object contribution, String xp, ComponentInstance component) {
+        // XXX: register anyway
         if (contribution instanceof Descriptor) {
             register(xp, (Descriptor) contribution);
         }
     }
 
     public void unregisterContribution(Object contribution, String xp, ComponentInstance component) {
+        // XXX
         if (contribution instanceof Descriptor) {
             unregister(xp, (Descriptor) contribution);
         }

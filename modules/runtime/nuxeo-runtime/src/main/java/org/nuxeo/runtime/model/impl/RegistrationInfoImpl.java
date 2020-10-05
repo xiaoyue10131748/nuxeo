@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -35,6 +36,7 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.common.xmap.annotation.XRegistry;
 import org.nuxeo.runtime.ComponentEvent;
 import org.nuxeo.runtime.RuntimeMessage;
 import org.nuxeo.runtime.RuntimeMessage.Level;
@@ -50,6 +52,7 @@ import org.nuxeo.runtime.model.Extension;
 import org.nuxeo.runtime.model.ExtensionPoint;
 import org.nuxeo.runtime.model.Property;
 import org.nuxeo.runtime.model.RegistrationInfo;
+import org.nuxeo.runtime.model.Registry;
 import org.nuxeo.runtime.model.RuntimeContext;
 
 /**
@@ -96,6 +99,8 @@ public class RegistrationInfoImpl implements RegistrationInfo {
 
     @XNodeList(value = "extension-point", type = ExtensionPointImpl[].class, componentType = ExtensionPointImpl.class)
     ExtensionPointImpl[] extensionPoints = new ExtensionPointImpl[0];
+
+    Map<String, XAnnotatedRegistry> registryDescriptors;
 
     @XNodeList(value = "extension", type = ExtensionImpl[].class, componentType = ExtensionImpl.class)
     ExtensionImpl[] extensions = new ExtensionImpl[0];
@@ -673,6 +678,12 @@ public class RegistrationInfoImpl implements RegistrationInfo {
     @Override
     public boolean useFormerLifecycleManagement() {
         return true;
+    }
+
+    @Override
+    public Optional<Registry> getRegistry(String name) {
+
+        throw new UnsupportedOperationException();
     }
 
 }

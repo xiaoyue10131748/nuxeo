@@ -27,7 +27,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.model.Descriptor;
 
 /**
- * Descriptor for JSF configuration contributions.
+ * Descriptor for configuration contributions.
  *
  * @since 7.4
  */

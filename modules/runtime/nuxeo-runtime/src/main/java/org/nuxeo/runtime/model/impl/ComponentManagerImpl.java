@@ -458,18 +458,14 @@ public class ComponentManagerImpl implements ComponentManager {
         // ExtensionPointImpl coming from XML deserialization
         if (ri.useFormerLifecycleManagement()) {
             // Extension point needing to load contribution are ExtensionPointImpl
-            ri.getExtensionPoint(xt.getExtensionPoint())
-              .filter(xp -> xp.getContributions() != null)
-              .map(ExtensionPointImpl.class::cast)
-              .ifPresent(xp -> {
-                  try {
-                      Object[] contribs = xp.loadContributions(ri, xt);
-                      xt.setContributions(contribs);
-                  } catch (RuntimeException e) {
-                      ComponentName compName = xt.getComponent().getName();
-                      handleError("Failed to load contributions for component " + compName, compName.getName(), e);
-                  }
-              });
+            ri.getExtensionPoint(xt.getExtensionPoint()).filter(xp -> xp.getContributions() != null).ifPresent(xp -> {
+                try {
+                    xp.loadContributions(xt);
+                } catch (RuntimeException e) {
+                    ComponentName compName = xt.getComponent().getName();
+                    handleError("Failed to load contributions for component " + compName, compName.getName(), e);
+                }
+            });
         }
     }
 

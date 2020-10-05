@@ -23,6 +23,8 @@ package org.nuxeo.runtime.model.impl;
 
 import java.io.Serializable;
 
+import org.nuxeo.common.xmap.XAnnotatedObject;
+import org.nuxeo.common.xmap.XAnnotatedRegistry;
 import org.nuxeo.common.xmap.XMap;
 import org.nuxeo.common.xmap.XMapException;
 import org.nuxeo.common.xmap.annotation.XContent;
@@ -33,7 +35,7 @@ import org.nuxeo.common.xmap.annotation.XParent;
 import org.nuxeo.runtime.model.Extension;
 import org.nuxeo.runtime.model.ExtensionPoint;
 import org.nuxeo.runtime.model.RegistrationInfo;
-import org.w3c.dom.Element;
+import org.nuxeo.runtime.model.Registry;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -60,6 +62,13 @@ public class ExtensionPointImpl implements ExtensionPoint, Serializable {
     @XParent
     public transient RegistrationInfo ri;
 
+    // potential registry class declaration
+    @XNode(value = "registry@class")
+    transient String registryKlass;
+
+    // potential registry annotations on contribution classes
+    transient XAnnotatedRegistry[] registries;
+
     @Override
     public Class<?>[] getContributions() {
         return contributions;
@@ -80,39 +89,63 @@ public class ExtensionPointImpl implements ExtensionPoint, Serializable {
         return superComponent;
     }
 
-    public Extension createExtension(Element element) {
-        return null;
+    protected XMap getXmap() {
+        if (xmap == null) {
+            xmap = new XMap();
+            registries = new XAnnotatedRegistry[contributions.length];
+            for (int i = 0; i < contributions.length; i++) {
+                Class<?> contrib = contributions[i];
+                if (contrib != null) {
+                    XAnnotatedObject xao = xmap.register(contrib);
+                    registries[i] = xmap.getRegistry(xao);
+                } else {
+                    throw new RuntimeException(
+                            "Unknown implementation class when contributing to " + ri.getComponent().getName());
+                }
+            }
+        }
+        return xmap;
     }
 
     public Object[] loadContributions(RegistrationInfo owner, Extension extension) {
+        return loadContributions(ri, extension);
+    }
+
+    @Override
+    public Object[] loadContributions(Extension extension) {
         Object[] contribs = extension.getContributions();
         if (contribs != null) {
-            // contributions already computed - this should e an overloaded (extended) extension point
+            // contributions already computed - this should be an overloaded (extended) extension point
             return contribs;
         }
         // should compute now the contributions
         if (contributions != null) {
-            if (xmap == null) {
-                xmap = new XMap();
-                for (Class<?> contrib : contributions) {
-                    if (contrib != null) {
-                        xmap.register(contrib);
-                    } else {
-                        throw new RuntimeException("Unknown implementation class when contributing to "
-                                + owner.getComponent().getName());
-                    }
-                }
-            }
             try {
-                contribs = xmap.loadAll(new XMapContext(extension.getContext()), extension.getElement());
+                contribs = getXmap().loadAll(new XMapContext(extension.getContext()), extension.getElement());
             } catch (XMapException e) {
                 throw new RuntimeException(
                         e.getMessage() + " while processing component: " + extension.getComponent().getName().getName(),
                         e);
             }
             extension.setContributions(contribs);
+        } else {
+            throw new RuntimeException(String.format(
+                    "Cannot contribute contributions from component '%s': extension point '%s:%s' is missing contribution classes",
+                    extension.getComponent().getName(), superComponent, name));
         }
         return contribs;
+    }
+
+    @Override
+    public Registry getRegistry() {
+        if (registries == null) {
+            // compute them first
+
+        }
+        if (registries.length > 0) {
+            return registries[0];
+        }
+        return null;
     }
 
 }

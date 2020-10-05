@@ -148,6 +148,11 @@ public interface RegistrationInfo extends Serializable {
     }
 
     /**
+     * @since TODO
+     */
+    Optional<Registry> getRegistry(String name);
+
+    /**
      * Gets the extensions contributed by this component.
      *
      * @return the contributed extensions

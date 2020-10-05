@@ -92,7 +92,6 @@ public class XAnnotatedMember {
             if (v != null && valueFactory != null) {
                 String value = valueFactory.serialize(null, v);
                 if (value != null) {
-
                     XMLBuilder.fillField(e, value, path.attribute);
                 }
             }

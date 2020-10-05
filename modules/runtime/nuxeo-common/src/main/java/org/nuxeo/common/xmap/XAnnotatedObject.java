@@ -106,6 +106,12 @@ public class XAnnotatedObject {
 
         return ctx.pop();
     }
+
+    public Object merge(Context ctx, XAnnotatedObject object1, XAnnotatedObject object2) {
+        // TODO
+        throw new UnsupportedOperationException();
+    }
+
 }
 
 class Sorter implements Comparator<XAnnotatedMember>, Serializable {

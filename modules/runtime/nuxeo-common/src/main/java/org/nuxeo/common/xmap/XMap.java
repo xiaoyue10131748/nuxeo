@@ -48,6 +48,7 @@ import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.common.xmap.annotation.XParent;
+import org.nuxeo.common.xmap.annotation.XRegistry;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -60,12 +61,12 @@ import org.xml.sax.SAXException;
  * <p>
  * The following annotations are supported:
  * <ul>
- * <li> {@link XObject} Mark the object as being mappable to an XML node
- * <li> {@link XNode} Map an XML node to a field of a mappable object
- * <li> {@link XNodeList} Map an list of XML nodes to a field of a mappable object
- * <li> {@link XNodeMap} Map an map of XML nodes to a field of a mappable object
- * <li> {@link XContent} Map an XML node content to a field of a mappable object
- * <li> {@link XParent} Map a field of the current mappable object to the parent object if any exists The parent object
+ * <li>{@link XObject} Mark the object as being mappable to an XML node
+ * <li>{@link XNode} Map an XML node to a field of a mappable object
+ * <li>{@link XNodeList} Map an list of XML nodes to a field of a mappable object
+ * <li>{@link XNodeMap} Map an map of XML nodes to a field of a mappable object
+ * <li>{@link XContent} Map an XML node content to a field of a mappable object
+ * <li>{@link XParent} Map a field of the current mappable object to the parent object if any exists The parent object
  * is the mappable object containing the current object as a field
  * </ul>
  * The mapping is done in 2 steps:
@@ -103,6 +104,9 @@ public class XMap {
     // the scanned objects
     private final Map<Class<?>, XAnnotatedObject> objects;
 
+    // the scanned registries
+    private final Map<Class<?>, XAnnotatedRegistry> registries;
+
     private final Map<Class<?>, XValueFactory> factories;
 
     /**
@@ -110,6 +114,7 @@ public class XMap {
      */
     public XMap() {
         objects = new Hashtable<>();
+        registries = new Hashtable<>();
         roots = new Hashtable<>();
         factories = new Hashtable<>(XValueFactory.defaultFactories);
     }
@@ -178,9 +183,26 @@ public class XMap {
                 if (key.length() > 0) {
                     roots.put(xao.path.path, xao);
                 }
+                XAnnotatedRegistry xareg = registries.get(klass);
+                if (xareg == null) {
+                    XRegistry xreg = checkRegistryAnnotation(klass);
+                    if (xreg != null) {
+                        registries.put(xao.klass, new XAnnotatedRegistry(xreg, xob));
+                    }
+                }
             }
         }
         return xao;
+    }
+
+    /**
+     * @since TODO
+     */
+    public XAnnotatedRegistry getRegistry(XAnnotatedObject xao) {
+        if (xao == null || xao.klass == null) {
+            return null;
+        }
+        return registries.get(xao.klass);
     }
 
     private void scan(XAnnotatedObject xob) {
@@ -462,6 +484,10 @@ public class XMap {
 
     protected static XObject checkObjectAnnotation(AnnotatedElement ae) {
         return ae.getAnnotation(XObject.class);
+    }
+
+    protected static XRegistry checkRegistryAnnotation(AnnotatedElement ae) {
+        return ae.getAnnotation(XRegistry.class);
     }
 
     private XAnnotatedMember createMember(Annotation annotation, XAccessor setter) {
