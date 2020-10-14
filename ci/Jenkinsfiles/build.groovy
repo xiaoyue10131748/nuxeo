@@ -215,7 +215,7 @@ def buildUnitTestStage(env) {
                 jx step helm install ${HELM_CHART_REPOSITORY_NAME}/${HELM_CHART_NUXEO} \
                   --name=${TEST_HELM_CHART_RELEASE} \
                   --namespace=${testNamespace} \
-                  --version=1.1-PR-22-19 \
+                  --version=1.1-PR-22-21 \
                   ${testValues}
               """
               // wait for external services to be ready
