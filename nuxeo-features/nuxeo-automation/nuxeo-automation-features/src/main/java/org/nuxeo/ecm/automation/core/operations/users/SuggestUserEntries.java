@@ -146,7 +146,7 @@ public class SuggestUserEntries {
     /*
      * @since 11.4
      */
-    @Param(name = "allowSubGroupsRestriction", required = false, description = "Suggest users from the subgroups specified in the group restriction.")
+    @Param(name = "allowSubGroupsRestriction", required = false, description = "Include the subgroups when passing a groupRestriction.")
     protected boolean allowSubGroupsRestriction;
 
     @OperationMethod
@@ -277,14 +277,14 @@ public class SuggestUserEntries {
                 List<String> groups = userAdapter.getGroups();
                 List<String> restrictedGroups = new ArrayList<>();
                 restrictedGroups.add(groupRestriction);
-                if (allowSubGroupsRestriction) {
-                    List<String> subGroups = userManager.getDescendantGroups(groupRestriction);
-                    for (String subGroup : subGroups) {
-                        restrictedGroups.add(subGroup);
-                    }
-                }
 
                 if (groups != null) {
+                    if (allowSubGroupsRestriction) {
+                        List<String> subGroups = userManager.getDescendantGroups(groupRestriction);
+                        for (String subGroup : subGroups) {
+                            restrictedGroups.add(subGroup);
+                        }
+                    }
                     groups.retainAll(restrictedGroups);
                     if (!groups.isEmpty()) {
                         result.add(obj);

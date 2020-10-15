@@ -280,26 +280,26 @@ public class TestSuggestUserEntries {
     public void testSubGroupEntries() throws Exception {
 
         // create top level group 'employees'
-        DocumentModel Employees = userManager.getBareGroupModel();
-        Employees.setPropertyValue("group:groupname", "Employees");
-        Employees.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("Developpers"));
+        DocumentModel employees = userManager.getBareGroupModel();
+        employees.setPropertyValue("group:groupname", "employees");
+        employees.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("developpers"));
 
-        userManager.createGroup(Employees);
+        userManager.createGroup(employees);
 
         // create second level group 'developpers'
-        DocumentModel Developpers = userManager.getBareGroupModel();
-        Developpers.setPropertyValue("group:groupname", "Developpers");
-        Developpers.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("Employees"));
-        Developpers.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("Support"));
+        DocumentModel developpers = userManager.getBareGroupModel();
+        developpers.setPropertyValue("group:groupname", "developpers");
+        developpers.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("employees"));
+        developpers.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("support"));
 
-        userManager.createGroup(Developpers);
+        userManager.createGroup(developpers);
 
         // create third level group 'support'
-        DocumentModel Support = userManager.getBareGroupModel();
-        Support.setPropertyValue("group:groupname", "Support");
-        Support.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("Developpers"));
+        DocumentModel support = userManager.getBareGroupModel();
+        support.setPropertyValue("group:groupname", "support");
+        support.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("developpers"));
 
-        userManager.createGroup(Support);
+        userManager.createGroup(support);
 
         // create 2 users in each group
         for (int i = 0; i < 6; i++) {
@@ -309,11 +309,11 @@ public class TestSuggestUserEntries {
             user.setPropertyValue("user:lastName", "Smith");
             user.setPropertyValue("user:email", "user" + i + "@example.com");
             if (i % 3 == 0) {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("Employees"));
+                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("employees"));
             } else if (i % 3 == 1) {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("Developpers"));
+                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("developpers"));
             } else {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("Support"));
+                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("support"));
             }
             userManager.createUser(user);
         }
@@ -323,28 +323,33 @@ public class TestSuggestUserEntries {
             // those in the Employees group directly, so a total of 6 people
             Map<String, String> params = new HashMap<>();
             params.put("allowSubGroupsRestriction", "true");
-            params.put("groupRestriction", "Employees");
+            params.put("groupRestriction", "employees");
             Blob result = (Blob) automationService.run(ctx, SuggestUserEntries.ID, params);
             assertNotNull(result);
             JsonAssert json = JsonAssert.on(result.getString());
             assertEquals(6, json.getNode().size());
 
-            params = new HashMap<>();
-            params.put("allowSubGroupsRestriction", "true");
-            params.put("groupRestriction", "Developpers");
+            params.put("groupRestriction", "developpers");
             result = (Blob) automationService.run(ctx, SuggestUserEntries.ID, params);
             assertNotNull(result);
             json = JsonAssert.on(result.getString());
             assertEquals(4, json.getNode().size());
 
-            params = new HashMap<>();
-            params.put("allowSubGroupsRestriction", "true");
-            params.put("groupRestriction", "Support");
+            params.put("groupRestriction", "support");
+            result = (Blob) automationService.run(ctx, SuggestUserEntries.ID, params);
+            assertNotNull(result);
+            json = JsonAssert.on(result.getString());
+            assertEquals(2, json.getNode().size());
+
+            // If we try searching employees without "allowSubGroupsRestriction = true" we should only have 2 people
+            params.put("allowSubGroupsRestriction", "false");
+            params.put("groupRestriction", "employees");
             result = (Blob) automationService.run(ctx, SuggestUserEntries.ID, params);
             assertNotNull(result);
             json = JsonAssert.on(result.getString());
             assertEquals(2, json.getNode().size());
 
         }
+
     }
 }

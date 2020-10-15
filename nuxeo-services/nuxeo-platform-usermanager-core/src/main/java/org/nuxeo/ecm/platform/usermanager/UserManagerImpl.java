@@ -1605,19 +1605,25 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     @Override
-    public List<String> getDescendantGroups(String groupId){
+    public List<String> getDescendantGroups(String groupId) {
         List<String> descendantGroups = new ArrayList<>();
-        populateDescendantGroups(groupId, descendantGroups);
+        Map<String, Boolean> crossedGroups = new HashMap<>();
+        populateDescendantGroups(groupId, descendantGroups, crossedGroups);
         return descendantGroups;
     }
 
-    protected void populateDescendantGroups(String groupId, List<String> descendantGroups) {
+    protected void populateDescendantGroups(String groupId, List<String> descendantGroups,
+            Map<String, Boolean> crossedGroups) {
         NuxeoGroup group = getGroup(groupId);
+
         if (group != null) {
             List<String> subGroups = group.getMemberGroups();
-            subGroups.stream().filter(subGroup -> !descendantGroups.contains(subGroup)).forEach(subGroup -> {
+            subGroups.stream().forEach(subGroup -> {
                 descendantGroups.add(subGroup);
-                populateDescendantGroups(subGroup, descendantGroups);
+                crossedGroups.put(groupId, true);
+                if(crossedGroups.get(subGroup)==null) {
+                    populateDescendantGroups(subGroup, descendantGroups, crossedGroups);
+                }
             });
         }
     }
