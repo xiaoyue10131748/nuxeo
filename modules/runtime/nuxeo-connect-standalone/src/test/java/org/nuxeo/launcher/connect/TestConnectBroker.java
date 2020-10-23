@@ -866,6 +866,48 @@ public class TestConnectBroker {
 
     @Test
     @LogCaptureFeature.FilterWith(PkgRequestLogFilter.class)
+    public void testInstallPackageRequestSnapshotDependenciesResolution() throws Exception {
+        Environment environment = Environment.getDefault();
+        environment.setProperty(Environment.DISTRIBUTION_NAME, "server");
+        environment.setProperty(Environment.DISTRIBUTION_VERSION, "11.3");
+        connectBroker = new ConnectBroker(environment);
+        ((StandaloneCallbackHolder) NuxeoConnectClient.getCallBackHolder()).setTestMode(true);
+        connectBroker.setAllowSNAPSHOT(false);
+
+        // U-1.0.0 is depends on V and snapshot are not allowed so it should resolve to V-1.0.0
+        assertThat(connectBroker.pkgRequest(null, singletonList("U-1.0.0"), null, null, true, false)).isFalse();
+
+        // check logs
+        String expectedLogs = "\n" //
+                + "Dependency resolution:\n" //
+                + "  Installation order (2):        V-1.0.0/U-1.0.0\n" //
+                + "  Unchanged packages (10):       A:1.0.0, B:1.0.1-SNAPSHOT, hfA:1.0.0, C:1.0.0, D:1.0.2-SNAPSHOT, studioA:1.0.0, G:1.0.1-SNAPSHOT, H:1.0.1-SNAPSHOT, J:1.0.1, K:1.0.0-SNAPSHOT\n" //
+                + "  Packages to download (2):      U:1.0.0, V:1.0.0\n" //
+                + "\n" //
+                + "Downloading [U-1.0.0, V-1.0.0]...\n" //
+                + "Aborting packages change request";
+        assertThat(logOf(logCaptureResult)).isEqualTo(expectedLogs);
+        logCaptureResult.clear();
+
+        connectBroker.setAllowSNAPSHOT(true);
+
+        // UU-1.0.0 is depends on VV and snapshot are allowed so it should resolve to VV-1.0.1-SNAPSHOT
+        assertThat(connectBroker.pkgRequest(null, singletonList("UU-1.0.0"), null, null, true, false)).isFalse();
+
+        // check logs
+        expectedLogs = "\n" //
+                + "Dependency resolution:\n" //
+                + "  Installation order (2):        VV-1.0.1-SNAPSHOT/UU-1.0.0\n" //
+                + "  Unchanged packages (10):       A:1.0.0, B:1.0.1-SNAPSHOT, hfA:1.0.0, C:1.0.0, D:1.0.2-SNAPSHOT, studioA:1.0.0, G:1.0.1-SNAPSHOT, H:1.0.1-SNAPSHOT, J:1.0.1, K:1.0.0-SNAPSHOT\n" //
+                + "  Packages to download (2):      UU:1.0.0, VV:1.0.1-SNAPSHOT\n" //
+                + "\n" //
+                + "Downloading [UU-1.0.0, VV-1.0.1-SNAPSHOT]...\n" //
+                + "Aborting packages change request";
+        assertThat(logOf(logCaptureResult)).isEqualTo(expectedLogs);
+    }
+
+    @Test
+    @LogCaptureFeature.FilterWith(PkgRequestLogFilter.class)
     public void testInstallPackageRequestWithMissingDependencies() throws Exception {
         Environment environment = Environment.getDefault();
         environment.setProperty(Environment.DISTRIBUTION_NAME, "server");
